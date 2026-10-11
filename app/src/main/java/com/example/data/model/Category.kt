@@ -2,6 +2,7 @@ package com.example.data.model
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Category
@@ -11,18 +12,21 @@ import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Flight
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocalGasStation
 import androidx.compose.material.icons.filled.LocalGroceryStore
 import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.Smartphone
+import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -59,11 +63,13 @@ object IconPalette {
         "Home" to Icons.Default.Home,
         "AccountBalance" to Icons.Default.AccountBalance,
         "LocalGasStation" to Icons.Default.LocalGasStation,
+        "Bolt" to Icons.Default.Bolt,
         "Shield" to Icons.Default.Shield,
         "DirectionsCar" to Icons.Default.DirectionsCar,
         "CreditCard" to Icons.Default.CreditCard,
         "School" to Icons.Default.School,
         "Smartphone" to Icons.Default.Smartphone,
+        "Wifi" to Icons.Default.Wifi,
         "ChildCare" to Icons.Default.ChildCare,
         "LocalGroceryStore" to Icons.Default.LocalGroceryStore,
         "CardGiftcard" to Icons.Default.CardGiftcard,
@@ -76,6 +82,8 @@ object IconPalette {
         "Flight" to Icons.Default.Flight,
         "Pets" to Icons.Default.Pets,
         "Work" to Icons.Default.Work,
+        "Person" to Icons.Default.Person,
+        "Group" to Icons.Default.Group,
         "Savings" to Icons.Default.Savings,
         "Payments" to Icons.Default.Payments
     )
@@ -110,16 +118,17 @@ object ColorPalette {
 object DefaultCategories {
     val defaults = listOf(
         // FIXED EXPENSES
-        CategoryEntity(name = "Rent / Mortgage", iconIdentifier = "Home", colorHex = "#3F51B5", type = "FIXED_EXPENSE", isDefault = true),
-        CategoryEntity(name = "City Tax", iconIdentifier = "AccountBalance", colorHex = "#607D8B", type = "FIXED_EXPENSE", isDefault = true),
-        CategoryEntity(name = "Gas & Heating", iconIdentifier = "LocalGasStation", colorHex = "#F4511E", type = "FIXED_EXPENSE", isDefault = true),
-        CategoryEntity(name = "Car Insurance", iconIdentifier = "Shield", colorHex = "#0288D1", type = "FIXED_EXPENSE", isDefault = true),
+        CategoryEntity(name = "Rent or Mortgage", iconIdentifier = "Home", colorHex = "#3F51B5", type = "FIXED_EXPENSE", isDefault = true),
         CategoryEntity(name = "Home Insurance", iconIdentifier = "Shield", colorHex = "#009688", type = "FIXED_EXPENSE", isDefault = true),
+        CategoryEntity(name = "City Property Tax", iconIdentifier = "AccountBalance", colorHex = "#607D8B", type = "FIXED_EXPENSE", isDefault = true),
+        CategoryEntity(name = "Gas or Electricity Bill", iconIdentifier = "Bolt", colorHex = "#F4511E", type = "FIXED_EXPENSE", isDefault = true),
         CategoryEntity(name = "Car Loan", iconIdentifier = "DirectionsCar", colorHex = "#00BCD4", type = "FIXED_EXPENSE", isDefault = true),
+        CategoryEntity(name = "Car Insurance", iconIdentifier = "Shield", colorHex = "#0288D1", type = "FIXED_EXPENSE", isDefault = true),
+        CategoryEntity(name = "Internet Bill", iconIdentifier = "Wifi", colorHex = "#3F51B5", type = "FIXED_EXPENSE", isDefault = true),
+        CategoryEntity(name = "Mobile Bill", iconIdentifier = "Smartphone", colorHex = "#795548", type = "FIXED_EXPENSE", isDefault = true),
+        CategoryEntity(name = "Child Activities", iconIdentifier = "ChildCare", colorHex = "#FF9800", type = "FIXED_EXPENSE", isDefault = true),
         CategoryEntity(name = "Card Loan", iconIdentifier = "CreditCard", colorHex = "#E91E63", type = "FIXED_EXPENSE", isDefault = true),
         CategoryEntity(name = "Student Loan", iconIdentifier = "School", colorHex = "#8E24AA", type = "FIXED_EXPENSE", isDefault = true),
-        CategoryEntity(name = "Mobile & Phone", iconIdentifier = "Smartphone", colorHex = "#795548", type = "FIXED_EXPENSE", isDefault = true),
-        CategoryEntity(name = "Child Activities", iconIdentifier = "ChildCare", colorHex = "#FF9800", type = "FIXED_EXPENSE", isDefault = true),
 
         // VARIABLE EXPENSES
         CategoryEntity(name = "Grocery", iconIdentifier = "LocalGroceryStore", colorHex = "#4CAF50", type = "VARIABLE_EXPENSE", isDefault = true),
@@ -130,9 +139,12 @@ object DefaultCategories {
         CategoryEntity(name = "Healthcare", iconIdentifier = "FitnessCenter", colorHex = "#009688", type = "VARIABLE_EXPENSE", isDefault = true),
 
         // INCOME
+        CategoryEntity(name = "My Primary Income", iconIdentifier = "Person", colorHex = "#2E7D32", type = "INCOME", isDefault = true),
+        CategoryEntity(name = "Family Member Income", iconIdentifier = "Group", colorHex = "#0288D1", type = "INCOME", isDefault = true),
         CategoryEntity(name = "Salary", iconIdentifier = "Work", colorHex = "#2E7D32", type = "INCOME", isDefault = true),
         CategoryEntity(name = "Freelance", iconIdentifier = "Work", colorHex = "#0288D1", type = "INCOME", isDefault = true),
-        CategoryEntity(name = "Investment", iconIdentifier = "Savings", colorHex = "#4CAF50", type = "INCOME", isDefault = true)
+        CategoryEntity(name = "Investment", iconIdentifier = "Savings", colorHex = "#4CAF50", type = "INCOME", isDefault = true),
+        CategoryEntity(name = "Other Income", iconIdentifier = "Payments", colorHex = "#607D8B", type = "INCOME", isDefault = true)
     )
 }
 

@@ -16,6 +16,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -48,6 +51,7 @@ fun TransactionsListScreen(
     onNavigateToTransactionDetail: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val filterState by viewModel.filterState.collectAsStateWithLifecycle()
     val transactions by viewModel.filteredTransactions.collectAsStateWithLifecycle()
     val dbCategories by viewModel.allCategories.collectAsStateWithLifecycle()
@@ -64,6 +68,24 @@ fun TransactionsListScreen(
                         ) {
                             Text("Reset")
                         }
+                    }
+                    IconButton(
+                        onClick = {
+                            val csvData = viewModel.generateCSVReport()
+                            val sendIntent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                putExtra(Intent.EXTRA_TEXT, csvData)
+                                type = "text/csv"
+                            }
+                            val shareIntent = Intent.createChooser(sendIntent, "Export SpendWise CSV")
+                            context.startActivity(shareIntent)
+                        },
+                        modifier = Modifier.testTag("export_csv_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = "Export CSV"
+                        )
                     }
                 }
             )

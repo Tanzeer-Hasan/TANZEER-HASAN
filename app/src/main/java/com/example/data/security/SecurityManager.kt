@@ -34,6 +34,30 @@ class SecurityManager(private val context: Context) {
         return sharedPreferences.contains(KEY_PIN_HASH)
     }
 
+    fun isOnboardingCompleted(): Boolean {
+        return sharedPreferences.getBoolean(KEY_ONBOARDING_COMPLETED, false)
+    }
+
+    fun setOnboardingCompleted(completed: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_ONBOARDING_COMPLETED, completed).apply()
+    }
+
+    fun getBaselineIncome(): Double {
+        return sharedPreferences.getFloat(KEY_BASELINE_INCOME, 0f).toDouble()
+    }
+
+    fun setBaselineIncome(amount: Double) {
+        sharedPreferences.edit().putFloat(KEY_BASELINE_INCOME, amount.toFloat()).apply()
+    }
+
+    fun getBaselineFixedExpenses(): Double {
+        return sharedPreferences.getFloat(KEY_BASELINE_FIXED_EXPENSES, 0f).toDouble()
+    }
+
+    fun setBaselineFixedExpenses(amount: Double) {
+        sharedPreferences.edit().putFloat(KEY_BASELINE_FIXED_EXPENSES, amount.toFloat()).apply()
+    }
+
     fun isBiometricEnabled(): Boolean {
         return sharedPreferences.getBoolean(KEY_BIOMETRIC_ENABLED, true)
     }
@@ -94,5 +118,8 @@ class SecurityManager(private val context: Context) {
         private const val KEY_PIN_HASH = "key_user_pin_hash"
         private const val KEY_PIN_SALT = "key_user_pin_salt"
         private const val KEY_BIOMETRIC_ENABLED = "key_biometric_enabled"
+        private const val KEY_ONBOARDING_COMPLETED = "key_onboarding_completed"
+        private const val KEY_BASELINE_INCOME = "key_baseline_income"
+        private const val KEY_BASELINE_FIXED_EXPENSES = "key_baseline_fixed_expenses"
     }
 }

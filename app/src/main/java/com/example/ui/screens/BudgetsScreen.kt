@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -55,6 +56,7 @@ import com.example.ui.components.BudgetProgressCard
 @Composable
 fun BudgetsScreen(
     viewModel: ExpenseViewModel,
+    onNavigateToInitialSetup: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val summaries by viewModel.categorySummaries.collectAsStateWithLifecycle()
@@ -85,6 +87,16 @@ fun BudgetsScreen(
             TopAppBar(
                 title = { Text("Categories & Budgets", fontWeight = FontWeight.Bold) },
                 actions = {
+                    IconButton(
+                        onClick = onNavigateToInitialSetup,
+                        modifier = Modifier.testTag("rerun_setup_wizard_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoFixHigh,
+                            contentDescription = "Setup Wizard",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                     Button(
                         onClick = { showAddCategoryBottomSheet = true },
                         shape = RoundedCornerShape(12.dp),

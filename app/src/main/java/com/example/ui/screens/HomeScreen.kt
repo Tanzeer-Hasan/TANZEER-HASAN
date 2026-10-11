@@ -1,6 +1,8 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,11 +17,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Savings
+import androidx.compose.material.icons.filled.Share
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -54,9 +62,11 @@ fun HomeScreen(
     onNavigateToTransactionDetail: (Long) -> Unit,
     onNavigateToAllTransactions: () -> Unit,
     onNavigateToBudgets: () -> Unit,
+    onNavigateToInitialSetup: () -> Unit = {},
     onLockApp: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val filterState by viewModel.filterState.collectAsStateWithLifecycle()
     val transactions by viewModel.filteredTransactions.collectAsStateWithLifecycle()
     val dbCategories by viewModel.allCategories.collectAsStateWithLifecycle()
@@ -140,15 +150,37 @@ fun HomeScreen(
                         )
                     }
 
-                    IconButton(
-                        onClick = onLockApp,
-                        modifier = Modifier.testTag("lock_app_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = "Lock App",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(
+                            onClick = {
+                                val csvData = viewModel.generateCSVReport()
+                                val sendIntent = Intent().apply {
+                                    action = Intent.ACTION_SEND
+                                    putExtra(Intent.EXTRA_TEXT, csvData)
+                                    type = "text/csv"
+                                }
+                                val shareIntent = Intent.createChooser(sendIntent, "Export SpendWise CSV")
+                                context.startActivity(shareIntent)
+                            },
+                            modifier = Modifier.testTag("home_export_csv_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = "Export CSV",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        IconButton(
+                            onClick = onLockApp,
+                            modifier = Modifier.testTag("lock_app_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = "Lock App",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
             }
@@ -162,6 +194,63 @@ fun HomeScreen(
                     onPreviousMonth = { viewModel.setFilterMonthOffset(filterState.monthOffset - 1) },
                     onNextMonth = { viewModel.setFilterMonthOffset(filterState.monthOffset + 1) }
                 )
+            }
+
+            // Household Budget Plan / Initial Setup Card
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp)
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(MaterialTheme.colorScheme.primary)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Savings,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Household Budget Setup",
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            val baseIncome = viewModel.securityManager.getBaselineIncome()
+                            val baseFixed = viewModel.securityManager.getBaselineFixedExpenses()
+                            Text(
+                                text = if (baseIncome > 0 || baseFixed > 0)
+                                    "Target Income: $${baseIncome.toInt()} • Fixed: $${baseFixed.toInt()}"
+                                else
+                                    "Plan your household income & fixed bills",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        OutlinedButton(
+                            onClick = onNavigateToInitialSetup,
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                            modifier = Modifier.testTag("manage_household_plan_button")
+                        ) {
+                            Text("Manage", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
             }
 
             // Quick Budget Alert Notification

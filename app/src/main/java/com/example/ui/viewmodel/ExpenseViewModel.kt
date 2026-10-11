@@ -9,6 +9,7 @@ import com.example.data.model.CategoryEntity
 import com.example.data.model.CategoryInfo
 import com.example.data.model.CategoryResolver
 import com.example.data.model.ColorPalette
+import com.example.data.model.DefaultCategories
 import com.example.data.model.IconPalette
 import com.example.data.model.LineItem
 import com.example.data.model.TransactionEntity
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -363,5 +365,162 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
             sb.append("\"$dateStr\",\"${t.title.replace("\"", "\"\"")}\",\"${t.type}\",\"${t.category}\",${t.amount},\"${t.paymentMethod}\",\"${t.notes.replace("\"", "\"\"")}\"\n")
         }
         return sb.toString()
+    }
+
+    fun completeInitialSetup(
+        personalIncome: Double,
+        familyIncome: Double,
+        otherIncomes: List<Pair<String, Double>>,
+        fixedExpenses: List<Pair<String, Double>>,
+        createInitialTransactions: Boolean = true,
+        onComplete: () -> Unit
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val now = System.currentTimeMillis()
+            val totalIncome = personalIncome + familyIncome + otherIncomes.sumOf { it.second }
+            val totalFixed = fixedExpenses.sumOf { it.second }
+
+            securityManager.setBaselineIncome(totalIncome)
+            securityManager.setBaselineFixedExpenses(totalFixed)
+
+            val existingCategories = repository.allCategories.first()
+            val existingCatNames = existingCategories.map { it.name.lowercase() }.toSet()
+
+            // 1. Incomes
+            if (personalIncome > 0) {
+                val catName = "My Primary Income"
+                if (!existingCatNames.contains(catName.lowercase())) {
+                    repository.insertCategory(
+                        CategoryEntity(
+                            name = catName,
+                            iconIdentifier = "Person",
+                            colorHex = "#2E7D32",
+                            type = "INCOME",
+                            isDefault = true
+                        )
+                    )
+                }
+                if (createInitialTransactions) {
+                    repository.insertTransaction(
+                        TransactionEntity(
+                            title = "My Primary Income",
+                            amount = personalIncome,
+                            type = TransactionType.INCOME.name,
+                            category = catName,
+                            paymentMethod = "Bank Transfer",
+                            dateMillis = now,
+                            notes = "Monthly baseline primary income"
+                        )
+                    )
+                }
+            }
+
+            if (familyIncome > 0) {
+                val catName = "Family Member Income"
+                if (!existingCatNames.contains(catName.lowercase())) {
+                    repository.insertCategory(
+                        CategoryEntity(
+                            name = catName,
+                            iconIdentifier = "Group",
+                            colorHex = "#0288D1",
+                            type = "INCOME",
+                            isDefault = true
+                        )
+                    )
+                }
+                if (createInitialTransactions) {
+                    repository.insertTransaction(
+                        TransactionEntity(
+                            title = "Family Member Income",
+                            amount = familyIncome,
+                            type = TransactionType.INCOME.name,
+                            category = catName,
+                            paymentMethod = "Bank Transfer",
+                            dateMillis = now,
+                            notes = "Monthly family member income"
+                        )
+                    )
+                }
+            }
+
+            for ((name, amount) in otherIncomes) {
+                if (amount > 0 && name.isNotBlank()) {
+                    val cleanName = name.trim()
+                    if (!existingCatNames.contains(cleanName.lowercase())) {
+                        repository.insertCategory(
+                            CategoryEntity(
+                                name = cleanName,
+                                iconIdentifier = "Payments",
+                                colorHex = "#009688",
+                                type = "INCOME",
+                                isDefault = false
+                            )
+                        )
+                    }
+                    if (createInitialTransactions) {
+                        repository.insertTransaction(
+                            TransactionEntity(
+                                title = cleanName,
+                                amount = amount,
+                                type = TransactionType.INCOME.name,
+                                category = cleanName,
+                                paymentMethod = "Bank Transfer",
+                                dateMillis = now,
+                                notes = "Monthly additional income source"
+                            )
+                        )
+                    }
+                }
+            }
+
+            // 2. Fixed Expenses
+            for ((name, amount) in fixedExpenses) {
+                if (amount > 0 && name.isNotBlank()) {
+                    val cleanName = name.trim()
+                    // Set monthly budget target
+                    repository.upsertBudget(
+                        BudgetEntity(
+                            categoryName = cleanName,
+                            monthlyLimit = amount,
+                            monthYear = "ALL"
+                        )
+                    )
+                    // Ensure category exists
+                    if (!existingCatNames.contains(cleanName.lowercase())) {
+                        val defaultMatch = DefaultCategories.defaults.firstOrNull { it.name.equals(cleanName, ignoreCase = true) }
+                        val iconId = defaultMatch?.iconIdentifier ?: "CreditCard"
+                        val colorHex = defaultMatch?.colorHex ?: "#3F51B5"
+                        repository.insertCategory(
+                            CategoryEntity(
+                                name = cleanName,
+                                iconIdentifier = iconId,
+                                colorHex = colorHex,
+                                type = "FIXED_EXPENSE",
+                                isDefault = defaultMatch != null
+                            )
+                        )
+                    }
+                    if (createInitialTransactions) {
+                        repository.insertTransaction(
+                            TransactionEntity(
+                                title = cleanName,
+                                amount = amount,
+                                type = TransactionType.EXPENSE.name,
+                                category = cleanName,
+                                paymentMethod = "Bank Transfer",
+                                dateMillis = now,
+                                notes = "Monthly fixed expense bill"
+                            )
+                        )
+                    }
+                }
+            }
+
+            securityManager.setOnboardingCompleted(true)
+
+            withContext(Dispatchers.Main) {
+                onComplete()
+            }
+        }
     }
 }

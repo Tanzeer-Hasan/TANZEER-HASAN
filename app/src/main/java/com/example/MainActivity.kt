@@ -32,6 +32,7 @@ import com.example.ui.screens.AddEditTransactionScreen
 import com.example.ui.screens.AnalyticsScreen
 import com.example.ui.screens.BudgetsScreen
 import com.example.ui.screens.HomeScreen
+import com.example.ui.screens.InitialBudgetSetupScreen
 import com.example.ui.screens.ReceiptScannerScreen
 import com.example.ui.screens.SecurityAuthScreen
 import com.example.ui.screens.TransactionsListScreen
@@ -53,6 +54,7 @@ sealed class Screen {
         val prefilledScannedReceipt: ScannedReceipt? = null,
         val prefilledImageUri: String? = null
     ) : Screen()
+    data object InitialSetup : Screen()
 }
 
 class MainActivity : FragmentActivity() {
@@ -75,7 +77,12 @@ class MainActivity : FragmentActivity() {
                         onAuthenticated = { isUnlocked = true }
                     )
                 } else {
-                    var currentScreen by remember { mutableStateOf<Screen>(Screen.Tab(MainTab.HOME)) }
+                    val initialScreen = if (!expenseViewModel.securityManager.isOnboardingCompleted()) {
+                        Screen.InitialSetup
+                    } else {
+                        Screen.Tab(MainTab.HOME)
+                    }
+                    var currentScreen by remember { mutableStateOf<Screen>(initialScreen) }
                     val showBottomBar = currentScreen is Screen.Tab
 
                     Scaffold(
@@ -120,6 +127,9 @@ class MainActivity : FragmentActivity() {
                                             },
                                             onNavigateToBudgets = {
                                                 currentScreen = Screen.Tab(MainTab.BUDGETS)
+                                            },
+                                            onNavigateToInitialSetup = {
+                                                currentScreen = Screen.InitialSetup
                                             },
                                             onLockApp = {
                                                 isUnlocked = false
@@ -166,6 +176,9 @@ class MainActivity : FragmentActivity() {
                                         BackHandler { currentScreen = Screen.Tab(MainTab.HOME) }
                                         BudgetsScreen(
                                             viewModel = expenseViewModel,
+                                            onNavigateToInitialSetup = {
+                                                currentScreen = Screen.InitialSetup
+                                            },
                                             modifier = modifier
                                         )
                                     }
@@ -180,6 +193,24 @@ class MainActivity : FragmentActivity() {
                                     prefilledScannedReceipt = screen.prefilledScannedReceipt,
                                     prefilledImageUri = screen.prefilledImageUri,
                                     onNavigateBack = { currentScreen = Screen.Tab(MainTab.HOME) },
+                                    modifier = modifier
+                                )
+                            }
+
+                            is Screen.InitialSetup -> {
+                                BackHandler {
+                                    if (expenseViewModel.securityManager.isOnboardingCompleted()) {
+                                        currentScreen = Screen.Tab(MainTab.HOME)
+                                    }
+                                }
+                                InitialBudgetSetupScreen(
+                                    viewModel = expenseViewModel,
+                                    onComplete = {
+                                        currentScreen = Screen.Tab(MainTab.HOME)
+                                    },
+                                    onSkip = {
+                                        currentScreen = Screen.Tab(MainTab.HOME)
+                                    },
                                     modifier = modifier
                                 )
                             }
